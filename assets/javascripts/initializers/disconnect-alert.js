@@ -23,13 +23,24 @@ function startPing(api) {
 
   const checkServerConnection = () => {
     console.log("Checking server connection...");
+
+    // Get CSRF token from meta tag
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+
+    const headers = {
+      "Accept": "application/json",
+      "cache": "no-store"
+    };
+
+    // Only add CSRF token if it exists
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
+
     fetch("/srv/status.json", {
       method: "GET",
       credentials: "same-origin",
-      headers: {
-        "Accept": "application/json",
-        "X-CSRF-Token": api.session.csrfToken
-      },
+      headers: headers,
       cache: "no-store"
     })
         .then((response) => {
