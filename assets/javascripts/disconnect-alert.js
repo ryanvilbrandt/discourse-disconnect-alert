@@ -52,6 +52,7 @@ function startPing(api) {
 
   // Setup regular interval
   const pingIntervalTime = api.container.lookup("service:site-settings").disconnect_alert_ping_interval;
+  console.log(`Setting up ping interval: ${pingIntervalTime}ms`);
   pingInterval = setInterval(checkServerConnection, pingIntervalTime);
 
   // Clean up on page unload
@@ -65,7 +66,9 @@ function startPing(api) {
 export default {
   name: "disconnect-alert",
   initialize(container) {
+    console.log("Plugin initializing...");
     const siteSettings = container.lookup("service:site-settings");
+    console.log(siteSettings);
 
     if (!siteSettings.disconnect_alert_enabled) {
       return;
@@ -74,6 +77,7 @@ export default {
     withPluginApi("0.8.7", (api) => {
       startPing(api);
     });
+    console.log("Plugin initialized!");
   }
 }
 
