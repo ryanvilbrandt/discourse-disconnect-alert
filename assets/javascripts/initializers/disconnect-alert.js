@@ -101,13 +101,13 @@ function startPing(api) {
   window.discourseDisconnectAlert.toggleBanner = () => toggleDisconnectBanner(api);
 
   // Add a keyboard shortcut for testing (Alt+Shift+D)
-  document.addEventListener('keydown', (e) => {
-    if (e.altKey && e.shiftKey && e.key === 'D') {
-      console.debug("DEBUG: Manual banner toggle triggered");
-      const isShowing = toggleDisconnectBanner(api);
-      console.debug(`DEBUG: Banner is now ${isShowing ? 'visible' : 'hidden'}`);
-    }
-  });
+  // document.addEventListener('keydown', (e) => {
+  //   if (e.altKey && e.shiftKey && e.key === 'D') {
+  //     console.debug("DEBUG: Manual banner toggle triggered");
+  //     const isShowing = toggleDisconnectBanner(api);
+  //     console.debug(`DEBUG: Banner is now ${isShowing ? 'visible' : 'hidden'}`);
+  //   }
+  // });
 
   const checkServerConnection = () => {
     console.debug("Checking server connection...");
@@ -218,7 +218,7 @@ export default {
 
     // Add a console message explaining how to test
     console.log("%c Disconnect Alert Test Methods:", "font-weight: bold; font-size: 14px; color: #0078D7;");
-    console.log("%c • Press Alt+Shift+D to toggle the banner", "color: #333; font-size: 13px;");
+    // console.log("%c • Press Alt+Shift+D to toggle the banner", "color: #333; font-size: 13px;");
     console.log("%c • Run window.discourseDisconnectAlert.showBanner() to show", "color: #333; font-size: 13px;");
     console.log("%c • Run window.discourseDisconnectAlert.hideBanner() to hide", "color: #333; font-size: 13px;");
     console.log("%c • Run window.discourseDisconnectAlert.toggleBanner() to toggle", "color: #333; font-size: 13px;");
