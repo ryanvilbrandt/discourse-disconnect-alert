@@ -1,5 +1,12 @@
 import { withPluginApi } from "discourse/lib/plugin-api";
 
+// DEBUG feature: expose these functions globally for testing
+window.discourseDisconnectAlert = {
+  showBanner: null,
+  hideBanner: null,
+  toggleBanner: null
+};
+
 function showDisconnectBanner(api) {
   console.log("showDisconnectBanner called");
   const siteSettings = api.container.lookup("service:site-settings");
@@ -11,12 +18,27 @@ function showDisconnectBanner(api) {
     console.log("Creating new banner element");
     const banner = document.createElement("div");
     banner.id = "disconnect-alert-banner";
-    banner.innerHTML = `⚠️ ${message}`;
+
+    // Add a close button for testing purposes
+    banner.innerHTML = `
+      ⚠️ ${message}
+      <button id="disconnect-alert-close" 
+              style="margin-left: 15px; padding: 5px 10px; background: rgba(0,0,0,0.2); 
+                     border: none; color: white; border-radius: 4px; cursor: pointer">
+        Close
+      </button>
+    `;
     console.log("Banner element created:", banner);
 
     // Insert into the body
     document.body.appendChild(banner);
     console.log("Banner appended to body, element now in DOM:", !!document.getElementById("disconnect-alert-banner"));
+
+    // Add click handler to the close button
+    document.getElementById("disconnect-alert-close")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      hideDisconnectBanner(api);
+    });
 
     // Debug CSS - check if styles are applied
     console.log("Banner computed styles:", window.getComputedStyle(banner));
@@ -77,10 +99,35 @@ function hideDisconnectBanner(api) {
   }
 }
 
+// Create a toggle function for the banner
+function toggleDisconnectBanner(api) {
+  if (document.getElementById("disconnect-alert-banner")) {
+    hideDisconnectBanner(api);
+    return false; // Banner was hidden
+  } else {
+    showDisconnectBanner(api);
+    return true; // Banner was shown
+  }
+}
+
 function startPing(api) {
   console.log("startPing called with api:", !!api);
   let failed = false;
   let pingInterval;
+
+  // Set up global test functions
+  window.discourseDisconnectAlert.showBanner = () => showDisconnectBanner(api);
+  window.discourseDisconnectAlert.hideBanner = () => hideDisconnectBanner(api);
+  window.discourseDisconnectAlert.toggleBanner = () => toggleDisconnectBanner(api);
+
+  // Add a keyboard shortcut for testing (Alt+Shift+D)
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.shiftKey && e.key === 'D') {
+      console.log("DEBUG: Manual banner toggle triggered");
+      const isShowing = toggleDisconnectBanner(api);
+      console.log(`DEBUG: Banner is now ${isShowing ? 'visible' : 'hidden'}`);
+    }
+  });
 
   const checkServerConnection = () => {
     console.log("Checking server connection...");
@@ -189,6 +236,13 @@ export default {
     console.log("Checking if document is ready:", document.readyState);
     console.log("Body exists:", !!document.body);
 
+    // Add a console message explaining how to test
+    console.log("%c Disconnect Alert Test Methods:", "font-weight: bold; font-size: 14px; color: #0078D7;");
+    console.log("%c • Press Alt+Shift+D to toggle the banner", "color: #333; font-size: 13px;");
+    console.log("%c • Run window.discourseDisconnectAlert.showBanner() to show", "color: #333; font-size: 13px;");
+    console.log("%c • Run window.discourseDisconnectAlert.hideBanner() to hide", "color: #333; font-size: 13px;");
+    console.log("%c • Run window.discourseDisconnectAlert.toggleBanner() to toggle", "color: #333; font-size: 13px;");
+
     // Check that our stylesheet is loaded
     window.addEventListener('load', () => {
       console.log("Window loaded event fired");
@@ -210,6 +264,9 @@ export default {
       }
 
       console.log("Disconnect alert styles found:", stylesFound);
+
+      // Log debug testing instructions again after page load
+      console.log("%c Disconnect Alert is ready for testing", "font-weight: bold; font-size: 14px; color: green;");
     });
   }
 }
