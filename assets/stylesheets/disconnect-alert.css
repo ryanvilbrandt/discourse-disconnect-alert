@@ -13,14 +13,14 @@
   font-size: 14px;
   border-bottom: 2px solid #d63920;
   backdrop-filter: blur(10px);
-  animation: slideDown 0.3s ease-out;
-
-  &.slide-up {
-    animation: slideUp 0.3s ease-in forwards;
-  }
+  animation: disconnectAlertSlideDown 0.3s ease-out;
 }
 
-@keyframes slideDown {
+#disconnect-alert-banner.slide-up {
+  animation: disconnectAlertSlideUp 0.3s ease-in forwards;
+}
+
+@keyframes disconnectAlertSlideDown {
   from {
     transform: translateY(-100%);
     opacity: 0;
@@ -31,7 +31,7 @@
   }
 }
 
-@keyframes slideUp {
+@keyframes disconnectAlertSlideUp {
   from {
     transform: translateY(0);
     opacity: 1;

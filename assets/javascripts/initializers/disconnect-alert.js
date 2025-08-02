@@ -43,17 +43,13 @@ function showDisconnectBanner(api) {
     // Debug CSS - check if styles are applied
     console.log("Banner computed styles:", window.getComputedStyle(banner));
 
-    // Verify the stylesheet is loaded
-    const stylesheetLoaded = Array.from(document.styleSheets).some(sheet => {
-      try {
-        return sheet.cssRules && Array.from(sheet.cssRules).some(rule =>
-          rule.selectorText && rule.selectorText.includes("disconnect-alert-banner"));
-      } catch (e) {
-        // Cross-origin stylesheet
-        return false;
-      }
-    });
-    console.log("Disconnect alert stylesheet loaded:", stylesheetLoaded);
+    // Verify the stylesheet is loaded by checking for applied styles
+    setTimeout(() => {
+      const computedStyle = window.getComputedStyle(banner);
+      const backgroundColorApplied = computedStyle.backgroundColor === 'rgb(228, 87, 53)'; // #e45735
+      console.log("Banner styles applied from stylesheet:",
+                  backgroundColorApplied ? "Yes" : "No (using fallback styles)");
+    }, 10);
 
     // Force some inline styles to make it visible regardless
     banner.style.cssText = `
@@ -247,23 +243,57 @@ export default {
     window.addEventListener('load', () => {
       console.log("Window loaded event fired");
       console.log("Checking for disconnect-alert styles:");
-      let stylesFound = false;
 
-      for (let i = 0; i < document.styleSheets.length; i++) {
-        try {
-          const sheet = document.styleSheets[i];
-          console.log(`Stylesheet ${i}:`, sheet.href);
+      // Test if we can create a test element and see if styles apply
+      const testEl = document.createElement('div');
+      testEl.id = 'disconnect-alert-banner';
+      testEl.style.cssText = 'position: absolute; visibility: hidden; pointer-events: none;';
+      document.body.appendChild(testEl);
 
-          if (sheet.href && sheet.href.includes('disconnect-alert')) {
-            console.log("Found disconnect-alert stylesheet!");
-            stylesFound = true;
+      // Check computed styles
+      const computedStyle = window.getComputedStyle(testEl);
+      const stylesApplied = computedStyle.backgroundColor === 'rgb(228, 87, 53)'; // #e45735
+
+      console.log("Disconnect alert styles found and applied:", stylesApplied);
+      testEl.remove();
+
+      // Register manual stylesheet if needed
+      if (!stylesApplied) {
+        console.log("Adding fallback stylesheet via JavaScript");
+        const style = document.createElement('style');
+        style.textContent = `
+          #disconnect-alert-banner {
+            background-color: #e45735 !important;
+            color: white !important;
+            padding: 15px 20px !important;
+            text-align: center !important;
+            font-weight: bold !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 10000 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+            font-size: 14px !important;
+            border-bottom: 2px solid #d63920 !important;
           }
-        } catch (e) {
-          console.log(`Cannot read stylesheet ${i} due to CORS`);
-        }
-      }
 
-      console.log("Disconnect alert styles found:", stylesFound);
+          @keyframes disconnectAlertSlideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+          }
+
+          @keyframes disconnectAlertSlideUp {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(-100%); opacity: 0; }
+          }
+
+          #disconnect-alert-banner.slide-up {
+            animation: disconnectAlertSlideUp 0.3s ease-in forwards !important;
+          }
+        `;
+        document.head.appendChild(style);
+      }
 
       // Log debug testing instructions again after page load
       console.log("%c Disconnect Alert is ready for testing", "font-weight: bold; font-size: 14px; color: green;");
