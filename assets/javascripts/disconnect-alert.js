@@ -1,3 +1,5 @@
+console.log("disconnect-alert.js file is being executed");
+
 import { withPluginApi } from "discourse/lib/plugin-api";
 
 function showDisconnectBanner(api) {
@@ -20,6 +22,7 @@ function startPing(api) {
   let pingInterval;
 
   const checkServerConnection = () => {
+    console.log("Checking server connection...");
     fetch("/srv/status.json", {
       method: "GET",
       credentials: "same-origin",
@@ -30,16 +33,19 @@ function startPing(api) {
       cache: "no-store"
     })
         .then((response) => {
+          console.log("Server response:", response.status);
           if (!response.ok) throw new Error("Server responded with error");
           return response.text();
         })
         .then((data) => {
+          console.log("Server data:", data);
           if (data === "ok" && failed) {
             hideDisconnectBanner(api);
             failed = false;
           }
         })
-        .catch(() => {
+        .catch((error) => {
+          console.log("Server connection failed:", error);
           if (!failed) {
             showDisconnectBanner(api);
             failed = true;
@@ -66,18 +72,21 @@ function startPing(api) {
 export default {
   name: "disconnect-alert",
   initialize(container) {
-    console.log("Plugin initializing...");
+    console.log("Plugin initialize() called!");
     const siteSettings = container.lookup("service:site-settings");
-    console.log(siteSettings);
+    console.log("Site settings:", siteSettings);
+    console.log("Plugin enabled:", siteSettings.disconnect_alert_enabled);
 
     if (!siteSettings.disconnect_alert_enabled) {
+      console.log("Plugin disabled via settings");
       return;
     }
 
+    console.log("About to call withPluginApi...");
     withPluginApi("0.8.7", (api) => {
+      console.log("Inside withPluginApi callback, starting ping...");
       startPing(api);
     });
     console.log("Plugin initialized!");
   }
 }
-
