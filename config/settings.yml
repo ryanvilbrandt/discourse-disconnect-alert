@@ -1,0 +1,12 @@
+plugins:
+  disconnect_alert_enabled:
+    default: true
+    client: true
+  disconnect_alert_ping_interval:
+    default: 30000
+    client: true
+    min: 5000
+    max: 300000
+  disconnect_alert_message:
+    default: "Cannot connect to the server. Please check your internet connection."
+    client: true

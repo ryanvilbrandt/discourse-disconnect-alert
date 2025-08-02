@@ -1,7 +1,10 @@
 import { withPluginApi } from "discourse/lib/plugin-api";
 
 function showDisconnectBanner(api) {
-  api.showBanner("Cannot connect to the server. Please check your internet connection.", {
+  const siteSettings = api.container.lookup("service:site-settings");
+  const message = siteSettings.disconnect_alert_message;
+
+  api.showBanner(message, {
     id: "disconnect-alert",
     type: "error",
     dismissable: false
@@ -14,30 +17,63 @@ function hideDisconnectBanner(api) {
 
 function startPing(api) {
   let failed = false;
-  setInterval(() => {
-    fetch("/srv/status.json", { credentials: "same-origin" })
-      .then((response) => {
-        if (!response.ok) throw new Error();
-        if (failed) {
-          hideDisconnectBanner(api);
-          failed = false;
-        }
-      })
-      .catch(() => {
-        if (!failed) {
-          showDisconnectBanner(api);
-          failed = true;
-        }
-      });
-  }, 10000); // Ping every 10 seconds
+  let pingInterval;
+
+  const checkServerConnection = () => {
+    fetch("/srv/status.json", {
+      method: "GET",
+      credentials: "same-origin",
+      headers: {
+        "Accept": "application/json",
+        "X-CSRF-Token": api.session.csrfToken
+      },
+      cache: "no-store"
+    })
+        .then((response) => {
+          if (!response.ok) throw new Error("Server responded with error");
+          return response.text();
+        })
+        .then((data) => {
+          if (data === "ok" && failed) {
+            hideDisconnectBanner(api);
+            failed = false;
+          }
+        })
+        .catch(() => {
+          if (!failed) {
+            showDisconnectBanner(api);
+            failed = true;
+          }
+        });
+  };
+
+  // Initial check
+  checkServerConnection();
+
+  // Setup regular interval
+  const pingIntervalTime = api.container.lookup("service:site-settings").disconnect_alert_ping_interval;
+  pingInterval = setInterval(checkServerConnection, pingIntervalTime);
+
+  // Clean up on page unload
+  window.addEventListener("beforeunload", () => {
+    if (pingInterval) {
+      clearInterval(pingInterval);
+    }
+  });
 }
 
 export default {
   name: "disconnect-alert",
-  initialize() {
+  initialize(container) {
+    const siteSettings = container.lookup("service:site-settings");
+
+    if (!siteSettings.disconnect_alert_enabled) {
+      return;
+    }
+
     withPluginApi("0.8.7", (api) => {
       startPing(api);
     });
-  },
-};
+  }
+}
 

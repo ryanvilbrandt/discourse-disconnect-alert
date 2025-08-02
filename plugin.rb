@@ -4,3 +4,4 @@
 # authors: Ryan Vilbrandt
 
 enabled_site_setting :disconnect_alert_enabled
+register_asset "javascripts/disconnect-alert.js"
